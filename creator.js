@@ -3,18 +3,24 @@ const supabase = supabase.createClient('https://dfkxlugytntvmrhjdmfg.supabase.co
 let currentUserId = null;
 
 async function login() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
     
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    // Busca en la tabla creadores
+    const { data, error } = await supabase
+        .from('creators')
+        .select('*')
+        .eq('username', user)
+        .eq('password', pass);
     
-    if (error) {
-        alert("Error de acceso: " + error.message);
-    } else {
-        currentUserId = data.user.id;
+    if (data && data.length > 0) {
+        currentUsername = data[0].username;
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('welcome-msg').innerText = `Hola, ${currentUsername}`;
         loadStats();
+    } else {
+        alert("Usuario o contraseña incorrectos");
     }
 }
 
@@ -35,12 +41,11 @@ document.getElementById('quiz-form').addEventListener('submit', async (e) => {
 
     const { data, error } = await supabase
         .from('quizzes')
-        .insert([{ creator_id: currentUserId, title: title, questions: questions }])
+        .insert([{ creator_username: currentUsername, title: title, questions: questions }])
         .select();
 
-    if (error) return alert("Error al guardar");
+    if (error) return alert("Error al guardar el cuestionario");
 
-    // Genera el enlace basado en la URL actual de GitHub Pages
     const link = `${window.location.origin}${window.location.pathname.replace('index.html','')}quiz.html?id=${data[0].id}`;
     document.getElementById('link-container').innerHTML = `Enlace para compartir: <a href="${link}" target="_blank">${link}</a>`;
 });
@@ -49,7 +54,7 @@ async function loadStats() {
     const { data, error } = await supabase
         .from('results')
         .select('*')
-        .eq('creator_id', currentUserId);
+        .eq('creator_username', currentUsername);
 
     if (error) return;
 
