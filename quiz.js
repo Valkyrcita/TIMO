@@ -1,3 +1,8 @@
+// Inicializar Supabase (con verificación de compatibilidad)
+if (!window.supabase) {
+    console.error('Supabase no está cargado. Asegúrate de incluir el script de Supabase antes de este archivo.');
+}
+
 const supabase = window.supabase.createClient(
     'https://dfkxlugytntvmrhjdmfg.supabase.co',
     'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
@@ -187,3 +192,6 @@ async function finishQuiz() {
         alert('No se pudo guardar tu resultado.');
     }
 }
+
+// Exportar funciones globales para compatibilidad
+window.startQuiz = startQuiz;
