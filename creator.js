@@ -1,65 +1,119 @@
-// Inicializar Supabase
-const supabase = supabase.createClient('https://dfkxlugytntvmrhjdmfg.supabase.co', 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO');
+const supabase = window.supabase.createClient(
+    'https://dfkxlugytntvmrhjdmfg.supabase.co',
+    'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
+);
+
 let currentUserId = null;
-let currentUsername = null;  // ✅ Añade esta línea
+let currentUsername = null;
 
 async function login() {
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-    
-    // Busca en la tabla creadores
+    const user = document.getElementById('username')?.value.trim();
+    const pass = document.getElementById('password')?.value;
+
+    if (!user || !pass) {
+        alert('Completa usuario y contraseña');
+        return;
+    }
+
     const { data, error } = await supabase
         .from('creators')
         .select('*')
         .eq('username', user)
         .eq('password', pass);
-    
-    if (data && data.length > 0) {
-        currentUsername = data[0].username;  // ✅ Ahora funciona correctamente
-        document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        document.getElementById('welcome-msg').innerText = `Hola, ${currentUsername}`;
-        loadStats();
-    } else {
-        alert("Usuario o contraseña incorrectos");
+
+    if (error) {
+        console.error(error);
+        alert('Error al iniciar sesión');
+        return;
     }
+
+    if (!data || data.length === 0) {
+        alert('Usuario o contraseña incorrectos');
+        return;
+    }
+
+    currentUsername = data[0].username;
+    const authSection = document.getElementById('auth-section');
+    const dashboard = document.getElementById('dashboard');
+    const welcomeMsg = document.getElementById('welcome-msg');
+
+    if (authSection) authSection.style.display = 'none';
+    if (dashboard) dashboard.style.display = 'block';
+    if (welcomeMsg) welcomeMsg.innerText = `Hola, ${currentUsername}`;
+
+    loadStats();
 }
 
-document.getElementById('quiz-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const questions = [];
-    const blocks = document.querySelectorAll('.question-block');
-    
-    blocks.forEach(block => {
-        questions.push({
-            pregunta: block.querySelector('.q-text').value,
-            opciones: [block.querySelector('.q-opt1').value, block.querySelector('.q-opt2').value],
-            correcta: parseInt(block.querySelector('.q-correct').value)
+const quizForm = document.getElementById('quiz-form');
+if (quizForm) {
+    quizForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const questions = [];
+        const blocks = document.querySelectorAll('.question-block');
+
+        blocks.forEach((block) => {
+            const questionText = block.querySelector('.q-text')?.value.trim();
+            const optionOne = block.querySelector('.q-opt1')?.value.trim();
+            const optionTwo = block.querySelector('.q-opt2')?.value.trim();
+            const correctIndex = Number(block.querySelector('.q-correct')?.value ?? 0);
+
+            if (!questionText || !optionOne || !optionTwo) return;
+
+            questions.push({
+                pregunta: questionText,
+                opciones: [optionOne, optionTwo],
+                correcta: correctIndex
+            });
         });
+
+        if (questions.length === 0) {
+            alert('Debes completar al menos una pregunta');
+            return;
+        }
+
+        const title = document.getElementById('quiz-title')?.value.trim();
+        if (!title) {
+            alert('Ingresa un título para el cuestionario');
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from('quizzes')
+            .insert([{ creator_username: currentUsername, title, questions }])
+            .select();
+
+        if (error) {
+            console.error(error);
+            alert('Error al guardar el cuestionario');
+            return;
+        }
+
+        const link = `${window.location.origin}${window.location.pathname.replace(/index\.html$/i, '')}quiz.html?id=${data[0].id}`;
+        const linkContainer = document.getElementById('link-container');
+
+        if (linkContainer) {
+            linkContainer.innerHTML = `Enlace para compartir: <a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>`;
+        }
     });
-
-    const title = document.getElementById('quiz-title').value;
-
-    const { data, error } = await supabase
-        .from('quizzes')
-        .insert([{ creator_username: currentUsername, title: title, questions: questions }])
-        .select();
-
-    if (error) return alert("Error al guardar el cuestionario");
-
-    const link = `${window.location.origin}${window.location.pathname.replace('index.html','')}quiz.html?id=${data[0].id}`;
-    document.getElementById('link-container').innerHTML = `Enlace para compartir: <a href="${link}" target="_blank">${link}</a>`;
-});
+}
 
 async function loadStats() {
+    if (!currentUsername) return;
+
     const { data, error } = await supabase
         .from('results')
         .select('*')
         .eq('creator_username', currentUsername);
 
-    if (error) return;
+    if (error) {
+        console.error(error);
+        return;
+    }
 
     const list = document.getElementById('stats-list');
+    if (!list) return;
+
     list.innerHTML = '';
     data.forEach((result) => {
         list.innerHTML += `<li>Cuenta ${result.account} (${result.name}) - Nota: ${result.score}/5</li>`;

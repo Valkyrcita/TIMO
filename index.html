@@ -2,47 +2,84 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Creadores</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
-        input, select, button { display: block; margin: 10px 0; padding: 10px; width: 100%; max-width: 400px; }
-        .question-block { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; background: #f9f9f9;}
-    </style>
 </head>
 <body>
-    <div id="auth-section">
-        <h2>Acceso de Creadores</h2>
-        <input type="text" id="username" placeholder="Nombre de usuario">
-        <input type="password" id="password" placeholder="Contraseña">
-        <button onclick="login()">Ingresar</button>
-    </div>
+    <div class="container">
+        <div id="auth-section" class="section">
+            <h2>Acceso de Creadores</h2>
+            <input type="text" id="username" placeholder="Nombre de usuario">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button type="button" onclick="login()">Ingresar</button>
+        </div>
 
-    <div id="dashboard" style="display:none;">
-        <h2 id="welcome-msg"></h2>
-        <h2>Crear Nuevo Cuestionario</h2>
-        <form id="quiz-form">
-            <input type="text" id="quiz-title" placeholder="Título del cuestionario" required>
-            
-            <!-- Repite este bloque 5 veces -->
-            <div class="question-block">
-                <input type="text" class="q-text" placeholder="Pregunta 1" required>
-                <input type="text" class="q-opt1" placeholder="Opción 1" required>
-                <input type="text" class="q-opt2" placeholder="Opción 2" required>
-                <select class="q-correct">
-                    <option value="0">Opción 1 es correcta</option>
-                    <option value="1">Opción 2 es correcta</option>
-                </select>
-            </div>
-            <!-- Agrega 4 bloques más aquí cambiando el placeholder de la pregunta -->
+        <div id="dashboard" style="display:none;" class="section">
+            <h2 id="welcome-msg"></h2>
+            <h2>Crear Nuevo Cuestionario</h2>
+            <form id="quiz-form">
+                <input type="text" id="quiz-title" placeholder="Título del cuestionario" required>
 
-            <button type="submit">Generar Cuestionario</button>
-        </form>
-        
-        <div id="link-container" style="margin: 20px 0; font-weight: bold;"></div>
+                <div class="question-block">
+                    <input type="text" class="q-text" placeholder="Pregunta 1" required>
+                    <input type="text" class="q-opt1" placeholder="Opción 1" required>
+                    <input type="text" class="q-opt2" placeholder="Opción 2" required>
+                    <select class="q-correct">
+                        <option value="0">Opción 1 es correcta</option>
+                        <option value="1">Opción 2 es correcta</option>
+                    </select>
+                </div>
 
-        <h2>Mis Estadísticas</h2>
-        <ul id="stats-list"></ul>
+                <div class="question-block">
+                    <input type="text" class="q-text" placeholder="Pregunta 2" required>
+                    <input type="text" class="q-opt1" placeholder="Opción 1" required>
+                    <input type="text" class="q-opt2" placeholder="Opción 2" required>
+                    <select class="q-correct">
+                        <option value="0">Opción 1 es correcta</option>
+                        <option value="1">Opción 2 es correcta</option>
+                    </select>
+                </div>
+
+                <div class="question-block">
+                    <input type="text" class="q-text" placeholder="Pregunta 3" required>
+                    <input type="text" class="q-opt1" placeholder="Opción 1" required>
+                    <input type="text" class="q-opt2" placeholder="Opción 2" required>
+                    <select class="q-correct">
+                        <option value="0">Opción 1 es correcta</option>
+                        <option value="1">Opción 2 es correcta</option>
+                    </select>
+                </div>
+
+                <div class="question-block">
+                    <input type="text" class="q-text" placeholder="Pregunta 4" required>
+                    <input type="text" class="q-opt1" placeholder="Opción 1" required>
+                    <input type="text" class="q-opt2" placeholder="Opción 2" required>
+                    <select class="q-correct">
+                        <option value="0">Opción 1 es correcta</option>
+                        <option value="1">Opción 2 es correcta</option>
+                    </select>
+                </div>
+
+                <div class="question-block">
+                    <input type="text" class="q-text" placeholder="Pregunta 5" required>
+                    <input type="text" class="q-opt1" placeholder="Opción 1" required>
+                    <input type="text" class="q-opt2" placeholder="Opción 2" required>
+                    <select class="q-correct">
+                        <option value="0">Opción 1 es correcta</option>
+                        <option value="1">Opción 2 es correcta</option>
+                    </select>
+                </div>
+
+                <button type="submit">Generar Cuestionario</button>
+            </form>
+
+            <div id="link-container" style="margin: 20px 0; font-weight: bold;"></div>
+
+            <h2>Mis Estadísticas</h2>
+            <ul id="stats-list"></ul>
+        </div>
     </div>
 
     <script src="creator.js"></script>
