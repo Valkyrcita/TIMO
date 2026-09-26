@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Creadores</title>
+    <!-- Librería de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
+        input, select, button { display: block; margin: 10px 0; padding: 10px; width: 100%; max-width: 400px; }
+        .question-block { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; background: #f9f9f9;}
+    </style>
+</head>
+<body>
+    <div id="auth-section">
+        <h2>Acceso de Creadores</h2>
+        <input type="email" id="email" placeholder="Correo">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button onclick="login()">Ingresar</button>
+    </div>
+
+    <div id="dashboard" style="display:none;">
+        <h2>Crear Nuevo Cuestionario</h2>
+        <form id="quiz-form">
+            <input type="text" id="quiz-title" placeholder="Título del cuestionario" required>
+            
+            <!-- Repite este bloque 5 veces (Pregunta 1 a 5) -->
+            <div class="question-block">
+                <input type="text" class="q-text" placeholder="Pregunta 1" required>
+                <input type="text" class="q-opt1" placeholder="Opción 1" required>
+                <input type="text" class="q-opt2" placeholder="Opción 2" required>
+                <select class="q-correct">
+                    <option value="0">Opción 1 es correcta</option>
+                    <option value="1">Opción 2 es correcta</option>
+                </select>
+            </div>
+            <!-- Fin bloque. Agrega 4 más aquí -->
+
+            <button type="submit">Generar Cuestionario</button>
+        </form>
+        
+        <div id="link-container" style="margin: 20px 0; font-weight: bold;"></div>
+
+        <h2>Mis Estadísticas</h2>
+        <ul id="stats-list"></ul>
+    </div>
+
+    <script src="creator.js"></script>
+</body>
+</html>
