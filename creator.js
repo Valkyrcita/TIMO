@@ -1,21 +1,19 @@
-// Usar la instancia global de Supabase que ya está cargada
-// window.supabase ya existe gracias al script en index.html
-
+// Usar la instancia global de Supabase que ya está cargada.
 let currentUserId = null;
 let currentUsername = null;
 
 async function login() {
-    const user = document.getElementById('username')?.value.trim();
-    const pass = document.getElementById('password')?.value.trim();
+    const user = document.getElementById('username')?.value.trim() ?? '';
+    const pass = document.getElementById('password')?.value ?? '';
 
-    if (!user || !pass) {
+    if (!user || !pass || user.length > 100) {
         alert('Completa usuario y contraseña');
         return;
     }
 
     const { data, error } = await window.supabase
         .from('creators')
-        .select('*')
+        .select('id, username')
         .eq('username', user)
         .eq('password', pass);
 
@@ -25,38 +23,47 @@ async function login() {
         return;
     }
 
-    if (!data || data.length === 0) {
+    if (!data?.length) {
         alert('Usuario o contraseña incorrectos');
         return;
     }
 
+    currentUserId = data[0].id ?? null;
     currentUsername = data[0].username;
-    const authSection = document.getElementById('auth-section');
-    const dashboard = document.getElementById('dashboard');
-    const welcomeMsg = document.getElementById('welcome-msg');
-
-    if (authSection) authSection.style.display = 'none';
-    if (dashboard) dashboard.style.display = 'block';
-    if (welcomeMsg) welcomeMsg.innerText = `Hola, ${currentUsername}`;
-
-    loadStats();
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('welcome-msg').textContent = `Hola, ${currentUsername}`;
+    await loadStats();
 }
 
 const quizForm = document.getElementById('quiz-form');
 if (quizForm) {
-    quizForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    quizForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        if (!currentUsername) {
+            alert('Debes iniciar sesión antes de crear un cuestionario');
+            return;
+        }
 
         const questions = [];
-        const blocks = document.querySelectorAll('.question-block');
+        let invalidBlock = false;
 
-        blocks.forEach((block) => {
-            const questionText = block.querySelector('.q-text')?.value.trim();
-            const optionOne = block.querySelector('.q-opt1')?.value.trim();
-            const optionTwo = block.querySelector('.q-opt2')?.value.trim();
-            const correctIndex = Number(block.querySelector('.q-correct')?.value ?? 0);
+        document.querySelectorAll('.question-block').forEach((block) => {
+            const questionText = block.querySelector('.q-text')?.value.trim() ?? '';
+            const optionOne = block.querySelector('.q-opt1')?.value.trim() ?? '';
+            const optionTwo = block.querySelector('.q-opt2')?.value.trim() ?? '';
+            const correctValue = block.querySelector('.q-correct')?.value;
+            const correctIndex = Number(correctValue);
+            const empty = !questionText && !optionOne && !optionTwo;
 
-            if (!questionText || !optionOne || !optionTwo) return;
+            if (empty) return;
+            if (!questionText || !optionOne || !optionTwo ||
+                questionText.length > 500 || optionOne.length > 300 ||
+                optionTwo.length > 300 || ![0, 1].includes(correctIndex)) {
+                invalidBlock = true;
+                return;
+            }
 
             questions.push({
                 pregunta: questionText,
@@ -65,50 +72,48 @@ if (quizForm) {
             });
         });
 
-        if (questions.length === 0) {
+        if (invalidBlock) {
+            alert('Completa correctamente cada pregunta iniciada.');
+            return;
+        }
+        if (!questions.length) {
             alert('Debes completar al menos una pregunta');
             return;
         }
 
-        const title = document.getElementById('quiz-title')?.value.trim();
-        if (!title) {
-            alert('Ingresa un título para el cuestionario');
+        const title = document.getElementById('quiz-title')?.value.trim() ?? '';
+        if (!title || title.length > 200) {
+            alert('Ingresa un título válido (máximo 200 caracteres)');
             return;
         }
 
         const { data, error } = await window.supabase
             .from('quizzes')
-            .insert([{ 
-                creator_username: currentUsername, 
-                title, 
-                questions,
-                total_questions: questions.length
-            }])
-            .select();
+            .insert([{ creator_username: currentUsername, title, questions, total_questions: questions.length }])
+            .select('id')
+            .single();
 
-        if (error) {
+        if (error || !data?.id) {
             console.error(error);
             alert('Error al guardar el cuestionario');
             return;
         }
 
-        if (!data || data.length === 0) {
-            alert('Error al obtener el ID del cuestionario');
-            return;
-        }
-
-        const quizUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname.replace(/index\.html$/i, '')}quizz.html?id=${data[0].id}`;
+        const quizUrl = new URL('quizz.html', window.location.href);
+        quizUrl.searchParams.set('id', data.id);
         const linkContainer = document.getElementById('link-container');
-
         if (linkContainer) {
-            linkContainer.innerHTML = `Enlace para compartir: <a href="${quizUrl}" target="_blank" rel="noopener noreferrer">${quizUrl}</a>`;
+            linkContainer.replaceChildren(document.createTextNode('Enlace para compartir: '));
+            const link = document.createElement('a');
+            link.href = quizUrl.href;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = quizUrl.href;
+            linkContainer.appendChild(link);
         }
 
-        // Limpiar formulario
         quizForm.reset();
-        
-        // Recargar estadísticas
-        loadStats();
+        await loadStats();
     });
 }
 
@@ -117,7 +122,7 @@ async function loadStats() {
 
     const { data, error } = await window.supabase
         .from('results')
-        .select('*')
+        .select('account, name, score, total_questions')
         .eq('creator_username', currentUsername);
 
     if (error) {
@@ -127,16 +132,18 @@ async function loadStats() {
 
     const list = document.getElementById('stats-list');
     if (!list) return;
+    list.replaceChildren();
 
-    list.innerHTML = '';
-    
-    if (!data || data.length === 0) {
-        list.innerHTML = '<li>No hay resultados aún</li>';
+    if (!data?.length) {
+        list.appendChild(document.createElement('li')).textContent = 'No hay resultados aún';
         return;
     }
-    
+
     data.forEach((result) => {
-        const totalQuestions = result.total_questions || '?';
-        list.innerHTML += `<li>Cuenta ${result.account} (${result.name}) - Nota: ${result.score}/${totalQuestions}</li>`;
+        const item = document.createElement('li');
+        item.textContent = `Cuenta ${result.account ?? ''} (${result.name ?? ''}) - Nota: ${result.score ?? 0}/${result.total_questions ?? '?'}`;
+        list.appendChild(item);
     });
 }
+
+window.login = login;
