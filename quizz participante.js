@@ -1,4 +1,4 @@
-const supabase = supabase.createClient('TU_URL_AQUI', 'TU_KEY_AQUI');
+const supabase = supabase.createClient('https://dfkxlugytntvmrhjdmfg.supabase.co', 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO');
 const urlParams = new URLSearchParams(window.location.search);
 const quizId = urlParams.get('id');
 
