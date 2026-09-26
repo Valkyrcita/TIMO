@@ -7,8 +7,9 @@ function ensureSupabaseClient() {
     }
 
     if (typeof supabase === 'undefined') {
-        console.error('Supabase SDK no está cargado. Revisa que el CDN esté incluido antes de creator.js.');
-        throw new Error('Supabase SDK no está cargado.');
+        const message = 'Supabase SDK no está cargado. Revisa que el CDN esté incluido antes de creator.js.';
+        console.error(message);
+        throw new Error(message);
     }
 
     window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -21,7 +22,6 @@ let currentUsername = null;
 async function login() {
     try {
         const client = ensureSupabaseClient();
-
         const user = document.getElementById('username')?.value.trim() ?? '';
         const pass = document.getElementById('password')?.value ?? '';
 
@@ -193,4 +193,3 @@ async function loadStats() {
 
 window.login = login;
 window.ensureSupabaseClient = ensureSupabaseClient;
-
