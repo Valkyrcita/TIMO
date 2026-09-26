@@ -1,73 +1,3 @@
-if (!window.supabase) {
-    window.supabase = supabase.createClient(
-        'https://dfkxlugytntvmrhjdmfg.supabase.co',
-        'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
-    );
-}
-
-const supabaseClient = window.supabase;
-
-const urlParams = new URLSearchParams(window.location.search);
-const quizId = urlParams.get('id');
-
-let quizData = null;
-let currentQuestionIndex = 0;
-let score = 0;
-let timer;
-let pName = '';
-let pAccount = '';
-
-async function startQuiz() {
-    pName = document.getElementById('p-name')?.value.trim() ?? '';
-    pAccount = document.getElementById('p-account')?.value.trim() ?? '';
-
-    if (!pName || !pAccount || pAccount.length > 3 || !/^\d+$/.test(pAccount)) {
-        alert('Datos inválidos');
-        return;
-    }
-
-    if (!quizId) {
-        alert('Falta el identificador del cuestionario.');
-        return;
-    }
-
-    const { data: existing, error: existingError } = await supabaseClient
-        .from('results')
-        .select('*')
-        .eq('quiz_id', quizId)
-        .eq('account', pAccount);
-
-    if (existingError) {
-        console.error(existingError);
-        alert('No se pudo validar intentos previos.');
-        return;
-    }
-
-    if (existing && existing.length > 0) {
-        alert('Esta cuenta ya resolvió el cuestionario.');
-        return;
-    }
-
-    const { data: quiz, error } = await supabaseClient
-        .from('quizzes')
-        .select('*')
-        .eq('id', quizId)
-        .single();
-
-    if (error || !quiz) {
-        console.error(error);
-        alert('Cuestionario no encontrado');
-        return;
-    }
-
-    quizData = quiz;
-    document.getElementById('registration').style.display = 'none';
-    document.getElementById('quiz-container').style.display = 'block';
-    document.getElementById('quiz-title').innerText = quiz.title;
-
-    showQuestion();
-}
-
 function showQuestion() {
     if (!quizData || currentQuestionIndex >= quizData.questions.length) {
         finishQuiz();
@@ -79,7 +9,7 @@ function showQuestion() {
 
     let optionsHtml = '';
     q.opciones.forEach((opt, index) => {
-        optionsHtml += `<button type="button" onclick="answerQuestion(${index})">${opt}</button>`;
+        optionsHtml += `<button type="button" class="btn btn-primary" onclick="answerQuestion(${index})">${opt}</button>`;
     });
 
     document.getElementById('options').innerHTML = optionsHtml;
