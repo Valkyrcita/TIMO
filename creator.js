@@ -1,4 +1,11 @@
 // Usar la instancia global de Supabase que ya está cargada.
+const SUPABASE_URL = 'https://dfkxlugytntvmrhjdmfg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO';
+
+if (!window.supabase) {
+    window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
 let currentUserId = null;
 let currentUsername = null;
 
