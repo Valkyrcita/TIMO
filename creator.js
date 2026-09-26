@@ -1,6 +1,7 @@
 // Inicializar Supabase
 const supabase = supabase.createClient('https://dfkxlugytntvmrhjdmfg.supabase.co', 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO');
 let currentUserId = null;
+let currentUsername = null;  // ✅ Añade esta línea
 
 async function login() {
     const user = document.getElementById('username').value;
@@ -14,7 +15,7 @@ async function login() {
         .eq('password', pass);
     
     if (data && data.length > 0) {
-        currentUsername = data[0].username;
+        currentUsername = data[0].username;  // ✅ Ahora funciona correctamente
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
         document.getElementById('welcome-msg').innerText = `Hola, ${currentUsername}`;
