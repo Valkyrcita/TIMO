@@ -1,7 +1,11 @@
-const supabase = window.supabase.createClient(
-    'https://dfkxlugytntvmrhjdmfg.supabase.co',
-    'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
-);
+if (!window.supabase) {
+    window.supabase = supabase.createClient(
+        'https://dfkxlugytntvmrhjdmfg.supabase.co',
+        'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
+    );
+}
+
+const supabaseClient = window.supabase;
 
 const urlParams = new URLSearchParams(window.location.search);
 const quizId = urlParams.get('id');
@@ -27,7 +31,7 @@ async function startQuiz() {
         return;
     }
 
-    const { data: existing, error: existingError } = await supabase
+    const { data: existing, error: existingError } = await supabaseClient
         .from('results')
         .select('*')
         .eq('quiz_id', quizId)
@@ -44,7 +48,7 @@ async function startQuiz() {
         return;
     }
 
-    const { data: quiz, error } = await supabase
+    const { data: quiz, error } = await supabaseClient
         .from('quizzes')
         .select('*')
         .eq('id', quizId)
@@ -132,12 +136,13 @@ async function finishQuiz() {
     const totalQuestions = Array.isArray(quizData.questions) ? quizData.questions.length : 0;
     document.getElementById('final-score').innerText = `Tu nota es: ${score} / ${totalQuestions}`;
 
-    const { error } = await supabase.from('results').insert([{
+    const { error } = await supabaseClient.from('results').insert([{
         quiz_id: quizId,
         creator_username: quizData.creator_username,
         name: pName,
         account: pAccount,
-        score: score
+        score: score,
+        total_questions: totalQuestions
     }]);
 
     if (error) {
@@ -145,3 +150,5 @@ async function finishQuiz() {
         alert('No se pudo guardar tu resultado.');
     }
 }
+
+window.startQuiz = startQuiz;
