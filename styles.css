@@ -1,5 +1,6 @@
 /* ===================================
    TIMO - Estilos Minimalistas Morados
+   (Integrado con App de Quizzes)
    =================================== */
 
 /* Variables de color */
@@ -149,16 +150,32 @@ button:disabled,
   background-color: var(--primary-lighter);
 }
 
-#options {
+/* Opciones de Pregunta adaptadas para el Quiz */
+#options-container {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   margin-top: 1rem;
 }
 
-#options .btn {
+.btn-option {
   width: 100%;
   text-align: left;
+  background-color: var(--background);
+  color: var(--text);
+  border: 2px solid var(--border);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-option:hover:not(:disabled) {
+  border-color: var(--primary);
+  background-color: var(--primary-lighter);
+  color: var(--primary-dark);
+  transform: translateY(-2px);
 }
 
 input,
@@ -173,6 +190,7 @@ select {
   color: var(--text);
   background-color: var(--background);
   transition: border-color 0.2s ease;
+  margin-bottom: 0.75rem; /* Margen añadido para formularios de la app */
 }
 
 input:focus,
@@ -199,7 +217,9 @@ label {
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 1.5rem;
+  margin-bottom: 1.5rem; /* Margen añadido para separar secciones del quiz */
   transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Sombra sutil añadida */
 }
 
 .card:hover {
@@ -349,6 +369,94 @@ hr {
   margin: 2rem 0;
 }
 
+/* ===================================
+   ESTILOS ESPECÍFICOS DEL QUIZ APP
+   =================================== */
+
+/* Contenedor principal de la app para centrar el contenido */
+body {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Temporizador */
+#timer {
+  color: var(--primary);
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Feedback general debajo de las opciones */
+#feedback {
+  font-size: 1.25rem;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 1.5rem;
+  min-height: 30px;
+}
+
+/* Colores de Respuesta (Feedback instantáneo) */
+.correct-ans {
+  background-color: #22c55e !important;
+  border-color: #15803d !important;
+  color: white !important;
+}
+
+.wrong-ans {
+  background-color: #ef4444 !important;
+  border-color: #991b1b !important;
+  color: white !important;
+}
+
+/* -----------------------------------
+   ESTILOS DEL PANEL DEL CREADOR
+   ----------------------------------- */
+
+/* Bloques de creación de preguntas */
+.question-block {
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  background-color: var(--gray-50);
+  border-radius: 0.5rem;
+}
+
+/* Estilos de las Estadísticas */
+.stat-item {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-details {
+  font-size: 0.9rem;
+  background-color: var(--gray-50);
+  padding: 1rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+}
+
+.correct-text { color: #15803d; font-weight: 600; }
+.wrong-text { color: #991b1b; font-weight: 600; }
+
+/* Soporte para modo oscuro en los nuevos bloques */
+@media (prefers-color-scheme: dark) {
+  .question-block, .stat-details {
+    background-color: var(--gray-800);
+  }
+  .correct-text { color: #4ade80; }
+  .wrong-text { color: #f87171; }
+}
+
+/* Responsivo para móviles */
 @media (max-width: 768px) {
   h1 { font-size: 2rem; }
   h2 { font-size: 1.5rem; }
