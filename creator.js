@@ -1,4 +1,3 @@
-// Usar la instancia global de Supabase que ya está cargada.
 const SUPABASE_URL = 'https://dfkxlugytntvmrhjdmfg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO';
 
@@ -26,7 +25,7 @@ async function login() {
 
     if (error) {
         console.error(error);
-        alert('Error al iniciar sesión');
+        alert('Error al iniciar sesión: ' + error.message);
         return;
     }
 
