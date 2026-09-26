@@ -1,8 +1,5 @@
-// Inicializar Supabase
-const supabase = window.supabase.createClient(
-    'https://dfkxlugytntvmrhjdmfg.supabase.co',
-    'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
-);
+// Usar la instancia global de Supabase que ya está cargada
+// window.supabase ya existe gracias al script en index.html
 
 let currentUserId = null;
 let currentUsername = null;
@@ -16,7 +13,7 @@ async function login() {
         return;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await window.supabase
         .from('creators')
         .select('*')
         .eq('username', user)
@@ -79,7 +76,7 @@ if (quizForm) {
             return;
         }
 
-        const { data, error } = await supabase
+        const { data, error } = await window.supabase
             .from('quizzes')
             .insert([{ 
                 creator_username: currentUsername, 
@@ -118,7 +115,7 @@ if (quizForm) {
 async function loadStats() {
     if (!currentUsername) return;
 
-    const { data, error } = await supabase
+    const { data, error } = await window.supabase
         .from('results')
         .select('*')
         .eq('creator_username', currentUsername);
