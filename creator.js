@@ -1,3 +1,4 @@
+// Inicializar Supabase
 const supabase = window.supabase.createClient(
     'https://dfkxlugytntvmrhjdmfg.supabase.co',
     'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
