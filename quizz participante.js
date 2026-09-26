@@ -15,7 +15,6 @@ async function startQuiz() {
     
     if (!pName || pAccount.length < 1 || pAccount.length > 3) return alert("Datos inválidos");
 
-    // Verificar si esta cuenta ya hizo esta prueba
     const { data: existing } = await supabase
         .from('results')
         .select('*')
@@ -26,7 +25,6 @@ async function startQuiz() {
         return alert("Esta cuenta ya resolvió el cuestionario.");
     }
 
-    // Buscar el cuestionario
     const { data: quiz, error } = await supabase
         .from('quizzes')
         .select('*')
@@ -75,7 +73,6 @@ window.answerQuestion = (selectedIndex) => {
     const correctIndex = quizData.questions[currentQuestionIndex].correcta;
     const feedbackEl = document.getElementById('feedback');
     
-    // Deshabilitar botones para no hacer doble clic
     document.querySelectorAll('#options button').forEach(b => b.disabled = true);
     
     if (selectedIndex === correctIndex) {
@@ -96,10 +93,9 @@ async function finishQuiz() {
     document.getElementById('result-container').style.display = 'block';
     document.getElementById('final-score').innerText = `Tu nota es: ${score} / 5`;
 
-    // Guardar resultado
     await supabase.from('results').insert([{
         quiz_id: quizId,
-        creator_id: quizData.creator_id,
+        creator_username: quizData.creator_username,
         name: pName,
         account: pAccount,
         score: score
