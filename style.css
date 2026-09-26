@@ -3,7 +3,6 @@
    (Versión Definitiva con Quizzes)
    =================================== */
 
-/* Variables de color */
 :root {
   --primary: #7c3aed;
   --primary-dark: #6d28d9;
@@ -105,7 +104,7 @@ button,
   background-color: var(--primary);
   color: white;
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.18);
-  width: 100%; /* Botones de bloque por defecto para la app */
+  width: 100%;
   margin: 10px 0;
 }
 
@@ -231,27 +230,18 @@ footer p { color: var(--text-light); font-size: 0.9rem; }
 
 hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0; }
 
-
-/* ===================================
-   DISEÑO ESPECÍFICO - APP DE QUIZZES
-   =================================== */
-
-/* Contenedores principales (centran la app sin dañar el header) */
-#dashboard, 
-#registration, 
-#quiz-container, 
+#dashboard,
+#registration,
+#quiz-container,
 #result-container {
   max-width: 800px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
 
-/* -----------------------------------
-   NUEVO: ESTILO DEL AUTH SECTION
-   ----------------------------------- */
 #auth-section {
-  max-width: 400px; /* Lo hace más estrecho como un login real */
-  margin: 4rem auto; /* Lo centra horizontal y verticalmente */
+  max-width: 420px;
+  margin: 4rem auto;
   padding: 2rem;
   text-align: center;
 }
@@ -260,7 +250,6 @@ hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0;
   margin-bottom: 1.5rem;
 }
 
-/* Opciones de Pregunta en el Quiz */
 #options-container {
   display: flex;
   flex-direction: column;
@@ -279,8 +268,8 @@ hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin: 0; /* Anula el margin general de botones */
-  box-shadow: none; /* Anula la sombra general de botones */
+  margin: 0;
+  box-shadow: none;
 }
 
 .btn-option:hover:not(:disabled) {
@@ -290,7 +279,6 @@ hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0;
   transform: translateY(-2px);
 }
 
-/* Temporizador */
 #timer {
   color: var(--primary);
   font-size: 2.5rem;
@@ -299,7 +287,6 @@ hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0;
   margin-bottom: 1rem;
 }
 
-/* Feedback instantáneo */
 #feedback {
   font-size: 1.25rem;
   font-weight: bold;
@@ -308,7 +295,6 @@ hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0;
   min-height: 30px;
 }
 
-/* Colores de Correcto/Incorrecto */
 .correct-ans {
   background-color: #22c55e !important;
   border-color: #15803d !important;
@@ -321,7 +307,6 @@ hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0;
   color: white !important;
 }
 
-/* Panel del Creador: Bloques de preguntas y Estadísticas */
 .question-block {
   border: 1px solid var(--border);
   padding: 1.5rem;
@@ -350,7 +335,6 @@ hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0;
 .correct-text { color: #15803d; font-weight: 600; }
 .wrong-text { color: #991b1b; font-weight: 600; }
 
-/* Soporte para modo oscuro en los bloques específicos */
 @media (prefers-color-scheme: dark) {
   .question-block, .stat-details {
     background-color: var(--gray-800);
@@ -359,7 +343,6 @@ hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0;
   .wrong-text { color: #f87171; }
 }
 
-/* Responsivo para móviles */
 @media (max-width: 768px) {
   h1 { font-size: 2rem; }
   h2 { font-size: 1.5rem; }
@@ -374,5 +357,5 @@ hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0;
   h1 { font-size: 1.5rem; }
   h2 { font-size: 1.25rem; }
   .section { padding: 1.5rem 0; }
-  #auth-section { margin-top: 2rem; padding: 1.5rem; } /* Ajuste del login en móviles */
+  #auth-section { margin-top: 2rem; padding: 1.5rem; }
 }

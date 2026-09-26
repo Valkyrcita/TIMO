@@ -12,7 +12,7 @@
         <h2 id="quiz-title-header">Cargando Quiz...</h2>
         <input type="text" id="p-name" placeholder="Tu Nombre/Alias" required>
         <input type="number" id="p-account" placeholder="Número de cuenta (1 a 3 dígitos)" min="1" max="999" required>
-        <button onclick="startQuiz()">Comenzar (45s por pregunta)</button>
+        <button type="button" class="btn btn-primary" onclick="startQuiz()">Comenzar (45s por pregunta)</button>
     </div>
 
     <div id="quiz-container" class="card" style="display:none;">
@@ -24,7 +24,7 @@
 
     <div id="result-container" class="card" style="display:none; text-align:center;">
         <h2>¡Cuestionario Completado!</h2>
-        <h1 id="final-score" style="font-size: 3em; color:#007bff; margin: 10px 0;"></h1>
+        <h1 id="final-score" style="font-size: 3em; color:#6d28d9; margin: 10px 0;"></h1>
         <h3 id="final-time"></h3>
     </div>
 

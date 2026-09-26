@@ -13,25 +13,25 @@
         <h2>Acceso Creador</h2>
         <input type="text" id="username" placeholder="Usuario">
         <input type="password" id="password" placeholder="Contraseña">
-        <button onclick="login()">Ingresar</button>
+        <button type="button" class="btn btn-primary" onclick="login()">Ingresar</button>
     </div>
 
     <div id="dashboard" style="display:none;">
         <h2 id="welcome-msg" class="card"></h2>
-        
+
         <div class="card">
             <h2>Crear Nuevo Quiz (5 Preguntas)</h2>
             <form id="quiz-form">
                 <input type="text" id="quiz-title" placeholder="Título del cuestionario" required>
                 <div id="questions-container"></div>
-                <button type="submit">Generar Cuestionario</button>
+                <button type="submit" class="btn btn-primary">Generar Cuestionario</button>
             </form>
-            <div id="link-container" style="display:none; margin-top:20px; padding:15px; background:#e8f4f8; border-radius:5px;"></div>
+            <div id="link-container" style="display:none; margin-top:20px; padding:15px; background:#f3e8ff; border-radius:5px;"></div>
         </div>
 
         <div class="card">
             <h2>Estadísticas de Participantes</h2>
-            <button onclick="loadStats()" style="background-color:#28a745; margin-bottom: 15px;">Actualizar Estadísticas</button>
+            <button type="button" class="btn btn-primary" onclick="loadStats()" style="margin-bottom: 15px;">Actualizar Estadísticas</button>
             <div id="stats-list"></div>
         </div>
     </div>
