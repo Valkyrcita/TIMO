@@ -83,11 +83,15 @@
     </div>
 
     <script>
-        window.supabase = window.supabase || supabase.createClient(
-            'https://dfkxlugytntvmrhjdmfg.supabase.co',
-            'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
-        );
-        window.TIMO_SUPABASE_READY = true;
+        // Force creation of a client instance (avoid window.supabase being the SDK object)
+        if (typeof supabase !== 'undefined') {
+            window.TIMO_SUPABASE_SDK = supabase;
+            window.supabase = supabase.createClient(
+                'https://dfkxlugytntvmrhjdmfg.supabase.co',
+                'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
+            );
+            window.TIMO_SUPABASE_READY = true;
+        }
     </script>
     <script src="creator.js"></script>
 </body>

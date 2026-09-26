@@ -2,16 +2,19 @@ const SUPABASE_URL = 'https://dfkxlugytntvmrhjdmfg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO';
 
 function ensureSupabaseClient() {
-    if (window.supabase) {
+    // If window.supabase is already a client instance (has .from), return it
+    if (window.supabase && typeof window.supabase.from === 'function') {
         return window.supabase;
     }
 
+    // If global SDK 'supabase' is present, create a client
     if (typeof supabase === 'undefined') {
         const message = 'Supabase SDK no está cargado. Revisa que el CDN esté incluido antes de creator.js.';
         console.error(message);
         throw new Error(message);
     }
 
+    // Create and assign a real client (avoid leaving the SDK object in window.supabase)
     window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     return window.supabase;
 }
