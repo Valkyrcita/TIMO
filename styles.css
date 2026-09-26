@@ -1,6 +1,6 @@
 /* ===================================
    TIMO - Estilos Minimalistas Morados
-   (Integrado con App de Quizzes)
+   (Versión Definitiva con Quizzes)
    =================================== */
 
 /* Variables de color */
@@ -105,6 +105,8 @@ button,
   background-color: var(--primary);
   color: white;
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.18);
+  width: 100%; /* Botones de bloque por defecto para la app */
+  margin: 10px 0;
 }
 
 button:hover,
@@ -121,36 +123,144 @@ button:disabled,
   box-shadow: none;
 }
 
-.btn-primary {
-  background-color: var(--primary);
-  color: white;
-}
+.btn-primary { background-color: var(--primary); color: white; }
+.btn-primary:hover { background-color: var(--primary-dark); }
+.btn-secondary { background-color: var(--gray-100); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background-color: var(--gray-200); }
+.btn-outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
+.btn-outline:hover { background-color: var(--primary-lighter); }
 
-.btn-primary:hover {
-  background-color: var(--primary-dark);
-}
-
-.btn-secondary {
-  background-color: var(--gray-100);
-  color: var(--text);
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.75rem;
   border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  background-color: var(--background);
+  transition: border-color 0.2s ease;
+  margin-bottom: 0.75rem;
+  box-sizing: border-box;
 }
 
-.btn-secondary:hover {
-  background-color: var(--gray-200);
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-lighter);
 }
 
-.btn-outline {
-  background-color: transparent;
-  color: var(--primary);
-  border: 2px solid var(--primary);
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text);
 }
 
-.btn-outline:hover {
-  background-color: var(--primary-lighter);
+.form-group { margin-bottom: 1.5rem; }
+
+.card {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-/* Opciones de Pregunta adaptadas para el Quiz */
+.card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+}
+
+.card-header { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.card-footer { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+.grid { display: grid; gap: 1.5rem; }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+.flex { display: flex; gap: 1rem; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+.flex-column { flex-direction: column; }
+
+.mt-1 { margin-top: 0.5rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; } .mt-4 { margin-top: 2rem; }
+.mb-1 { margin-bottom: 0.5rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mb-4 { margin-bottom: 2rem; }
+.p-1 { padding: 0.5rem; } .p-2 { padding: 1rem; } .p-3 { padding: 1.5rem; } .p-4 { padding: 2rem; }
+
+header {
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: all 0.2s ease;
+}
+
+header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+nav { display: flex; gap: 2rem; }
+nav a { color: var(--text-light); font-weight: 500; transition: color 0.2s ease; }
+nav a:hover { color: var(--primary); }
+
+footer { background-color: var(--gray-50); border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 3rem; }
+footer p { color: var(--text-light); font-size: 0.9rem; }
+
+.badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; }
+.badge-primary { background-color: var(--primary-lighter); color: var(--primary-dark); }
+.badge-secondary { background-color: var(--gray-100); color: var(--gray-700); }
+
+.alert { padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; border-left: 4px solid; }
+.alert-info { background-color: var(--primary-lighter); border-color: var(--primary); color: var(--primary-dark); }
+.alert-success { background-color: #dcfce7; border-color: #22c55e; color: #15803d; }
+.alert-warning { background-color: #fef3c7; border-color: #f59e0b; color: #92400e; }
+.alert-error { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+
+hr { border: none; height: 1px; background-color: var(--border); margin: 2rem 0; }
+
+
+/* ===================================
+   DISEÑO ESPECÍFICO - APP DE QUIZZES
+   =================================== */
+
+/* Contenedores principales (centran la app sin dañar el header) */
+#dashboard, 
+#registration, 
+#quiz-container, 
+#result-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* -----------------------------------
+   NUEVO: ESTILO DEL AUTH SECTION
+   ----------------------------------- */
+#auth-section {
+  max-width: 400px; /* Lo hace más estrecho como un login real */
+  margin: 4rem auto; /* Lo centra horizontal y verticalmente */
+  padding: 2rem;
+  text-align: center;
+}
+
+#auth-section h2 {
+  margin-bottom: 1.5rem;
+}
+
+/* Opciones de Pregunta en el Quiz */
 #options-container {
   display: flex;
   flex-direction: column;
@@ -169,6 +279,8 @@ button:disabled,
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin: 0; /* Anula el margin general de botones */
+  box-shadow: none; /* Anula la sombra general de botones */
 }
 
 .btn-option:hover:not(:disabled) {
@@ -176,208 +288,6 @@ button:disabled,
   background-color: var(--primary-lighter);
   color: var(--primary-dark);
   transform: translateY(-2px);
-}
-
-input,
-textarea,
-select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 0.375rem;
-  font-family: inherit;
-  font-size: 1rem;
-  color: var(--text);
-  background-color: var(--background);
-  transition: border-color 0.2s ease;
-  margin-bottom: 0.75rem; /* Margen añadido para formularios de la app */
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-lighter);
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.card {
-  background-color: var(--background);
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem; /* Margen añadido para separar secciones del quiz */
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Sombra sutil añadida */
-}
-
-.card:hover {
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
-}
-
-.card-header {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.card-footer {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-}
-
-.grid { display: grid; gap: 1.5rem; }
-.grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-.grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-.grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-
-.flex { display: flex; gap: 1rem; }
-.flex-between { display: flex; justify-content: space-between; align-items: center; }
-.flex-center { display: flex; justify-content: center; align-items: center; }
-.flex-column { flex-direction: column; }
-
-.mt-1 { margin-top: 0.5rem; }
-.mt-2 { margin-top: 1rem; }
-.mt-3 { margin-top: 1.5rem; }
-.mt-4 { margin-top: 2rem; }
-
-.mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 1.5rem; }
-.mb-4 { margin-bottom: 2rem; }
-
-.p-1 { padding: 0.5rem; }
-.p-2 { padding: 1rem; }
-.p-3 { padding: 1.5rem; }
-.p-4 { padding: 2rem; }
-
-header {
-  background-color: var(--background);
-  border-bottom: 1px solid var(--border);
-  padding: 1rem 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  transition: all 0.2s ease;
-}
-
-header .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-nav {
-  display: flex;
-  gap: 2rem;
-}
-
-nav a {
-  color: var(--text-light);
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-nav a:hover {
-  color: var(--primary);
-}
-
-footer {
-  background-color: var(--gray-50);
-  border-top: 1px solid var(--border);
-  padding: 2rem 0;
-  margin-top: 3rem;
-}
-
-footer p {
-  color: var(--text-light);
-  font-size: 0.9rem;
-}
-
-.badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.badge-primary {
-  background-color: var(--primary-lighter);
-  color: var(--primary-dark);
-}
-
-.badge-secondary {
-  background-color: var(--gray-100);
-  color: var(--gray-700);
-}
-
-.alert {
-  padding: 1rem;
-  border-radius: 0.375rem;
-  margin-bottom: 1rem;
-  border-left: 4px solid;
-}
-
-.alert-info {
-  background-color: var(--primary-lighter);
-  border-color: var(--primary);
-  color: var(--primary-dark);
-}
-
-.alert-success {
-  background-color: #dcfce7;
-  border-color: #22c55e;
-  color: #15803d;
-}
-
-.alert-warning {
-  background-color: #fef3c7;
-  border-color: #f59e0b;
-  color: #92400e;
-}
-
-.alert-error {
-  background-color: #fee2e2;
-  border-color: #ef4444;
-  color: #991b1b;
-}
-
-hr {
-  border: none;
-  height: 1px;
-  background-color: var(--border);
-  margin: 2rem 0;
-}
-
-/* ===================================
-   ESTILOS ESPECÍFICOS DEL QUIZ APP
-   =================================== */
-
-/* Contenedor principal de la app para centrar el contenido */
-body {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
 }
 
 /* Temporizador */
@@ -389,7 +299,7 @@ body {
   margin-bottom: 1rem;
 }
 
-/* Feedback general debajo de las opciones */
+/* Feedback instantáneo */
 #feedback {
   font-size: 1.25rem;
   font-weight: bold;
@@ -398,7 +308,7 @@ body {
   min-height: 30px;
 }
 
-/* Colores de Respuesta (Feedback instantáneo) */
+/* Colores de Correcto/Incorrecto */
 .correct-ans {
   background-color: #22c55e !important;
   border-color: #15803d !important;
@@ -411,11 +321,7 @@ body {
   color: white !important;
 }
 
-/* -----------------------------------
-   ESTILOS DEL PANEL DEL CREADOR
-   ----------------------------------- */
-
-/* Bloques de creación de preguntas */
+/* Panel del Creador: Bloques de preguntas y Estadísticas */
 .question-block {
   border: 1px solid var(--border);
   padding: 1.5rem;
@@ -424,16 +330,13 @@ body {
   border-radius: 0.5rem;
 }
 
-/* Estilos de las Estadísticas */
 .stat-item {
   border-bottom: 1px solid var(--border);
   padding-bottom: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
-.stat-item:last-child {
-  border-bottom: none;
-}
+.stat-item:last-child { border-bottom: none; }
 
 .stat-details {
   font-size: 0.9rem;
@@ -447,7 +350,7 @@ body {
 .correct-text { color: #15803d; font-weight: 600; }
 .wrong-text { color: #991b1b; font-weight: 600; }
 
-/* Soporte para modo oscuro en los nuevos bloques */
+/* Soporte para modo oscuro en los bloques específicos */
 @media (prefers-color-scheme: dark) {
   .question-block, .stat-details {
     background-color: var(--gray-800);
@@ -471,4 +374,5 @@ body {
   h1 { font-size: 1.5rem; }
   h2 { font-size: 1.25rem; }
   .section { padding: 1.5rem 0; }
+  #auth-section { margin-top: 2rem; padding: 1.5rem; } /* Ajuste del login en móviles */
 }
