@@ -1,12 +1,8 @@
-// Inicializar Supabase (con verificación de compatibilidad)
 if (!window.supabase) {
-    console.error('Supabase no está cargado. Asegúrate de incluir el script de Supabase antes de este archivo.');
+    throw new Error('Supabase no está cargado. Debe inicializarse antes de cargar quiz.js.');
 }
 
-const supabase = window.supabase.createClient(
-    'https://dfkxlugytntvmrhjdmfg.supabase.co',
-    'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO'
-);
+const supabase = window.supabase;
 
 const urlParams = new URLSearchParams(window.location.search);
 const quizId = urlParams.get('id');
@@ -67,9 +63,16 @@ async function startQuiz() {
     }
 
     quizData = quiz;
-    document.getElementById('registration').style.display = 'none';
-    document.getElementById('quiz-container').style.display = 'block';
-    document.getElementById('quiz-title').innerText = quiz.title;
+    currentQuestionIndex = 0;
+    score = 0;
+
+    const registration = document.getElementById('registration');
+    const quizContainer = document.getElementById('quiz-container');
+    const quizTitle = document.getElementById('quiz-title');
+
+    if (registration) registration.style.display = 'none';
+    if (quizContainer) quizContainer.style.display = 'block';
+    if (quizTitle) quizTitle.innerText = quiz.title;
 
     showQuestion();
 }
@@ -82,7 +85,7 @@ function escapeHtml(text) {
         '"': '&quot;',
         "'": '&#039;'
     };
-    return String(text).replace(/[&<>"']/g, (m) => map[m]);
+    return String(text).replace(/[&<>\"']/g, (m) => map[m]);
 }
 
 function showQuestion() {
@@ -92,23 +95,27 @@ function showQuestion() {
     }
 
     const q = quizData.questions[currentQuestionIndex];
-    
+
     if (!q || !q.pregunta || !Array.isArray(q.opciones)) {
         console.error('Pregunta inválida:', q);
         finishQuiz();
         return;
     }
 
-    document.getElementById('question-text').innerText = q.pregunta;
-    document.getElementById('question-text').textContent = q.pregunta; // Asegurar seguridad
+    const questionText = document.getElementById('question-text');
+    if (questionText) {
+        questionText.innerText = q.pregunta;
+        questionText.textContent = q.pregunta;
+    }
 
     const optionsContainer = document.getElementById('options');
+    if (!optionsContainer) return;
     optionsContainer.innerHTML = '';
 
     q.opciones.forEach((opt, index) => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.textContent = opt; // Usar textContent en lugar de innerHTML
+        button.textContent = opt;
         button.onclick = () => answerQuestion(index);
         button.style.margin = '0.5rem 0';
         button.style.padding = '0.75rem';
@@ -116,16 +123,21 @@ function showQuestion() {
         optionsContainer.appendChild(button);
     });
 
-    document.getElementById('feedback').innerText = '';
-    document.getElementById('feedback').textContent = '';
+    const feedback = document.getElementById('feedback');
+    if (feedback) {
+        feedback.innerText = '';
+        feedback.textContent = '';
+        feedback.style.color = '';
+    }
 
     let timeLeft = 45;
-    document.getElementById('timer').innerText = `${timeLeft}s`;
+    const timerEl = document.getElementById('timer');
+    if (timerEl) timerEl.innerText = `${timeLeft}s`;
     clearInterval(timer);
 
     timer = setInterval(() => {
         timeLeft -= 1;
-        document.getElementById('timer').innerText = `${timeLeft}s`;
+        if (timerEl) timerEl.innerText = `${timeLeft}s`;
 
         if (timeLeft <= 0) {
             clearInterval(timer);
@@ -134,14 +146,15 @@ function showQuestion() {
     }, 1000);
 }
 
-window.answerQuestion = (selectedIndex) => {
+function answerQuestion(selectedIndex) {
     clearInterval(timer);
 
     if (!quizData || !Array.isArray(quizData.questions) || currentQuestionIndex >= quizData.questions.length) {
         return;
     }
 
-    const correctIndex = quizData.questions[currentQuestionIndex].correcta;
+    const currentQuestion = quizData.questions[currentQuestionIndex];
+    const correctIndex = currentQuestion?.correcta;
     const feedbackEl = document.getElementById('feedback');
 
     document.querySelectorAll('#options button').forEach((button) => {
@@ -149,29 +162,39 @@ window.answerQuestion = (selectedIndex) => {
     });
 
     if (selectedIndex === correctIndex) {
-        feedbackEl.innerText = '¡Correcto!';
-        feedbackEl.textContent = '¡Correcto!';
-        feedbackEl.style.color = 'green';
+        if (feedbackEl) {
+            feedbackEl.innerText = '¡Correcto!';
+            feedbackEl.textContent = '¡Correcto!';
+            feedbackEl.style.color = 'green';
+        }
         score += 1;
     } else {
-        feedbackEl.innerText = 'Incorrecto o Tiempo Agotado';
-        feedbackEl.textContent = 'Incorrecto o Tiempo Agotado';
-        feedbackEl.style.color = 'red';
+        if (feedbackEl) {
+            feedbackEl.innerText = 'Incorrecto o Tiempo Agotado';
+            feedbackEl.textContent = 'Incorrecto o Tiempo Agotado';
+            feedbackEl.style.color = 'red';
+        }
     }
 
     currentQuestionIndex += 1;
     setTimeout(showQuestion, 1500);
-};
+}
 
 async function finishQuiz() {
     if (!quizData) return;
 
-    document.getElementById('quiz-container').style.display = 'none';
-    document.getElementById('result-container').style.display = 'block';
+    const quizContainer = document.getElementById('quiz-container');
+    const resultContainer = document.getElementById('result-container');
+
+    if (quizContainer) quizContainer.style.display = 'none';
+    if (resultContainer) resultContainer.style.display = 'block';
 
     const totalQuestions = Array.isArray(quizData.questions) ? quizData.questions.length : 0;
-    document.getElementById('final-score').innerText = `Tu nota es: ${score} / ${totalQuestions}`;
-    document.getElementById('final-score').textContent = `Tu nota es: ${score} / ${totalQuestions}`;
+    const finalScore = document.getElementById('final-score');
+    if (finalScore) {
+        finalScore.innerText = `Tu nota es: ${score} / ${totalQuestions}`;
+        finalScore.textContent = `Tu nota es: ${score} / ${totalQuestions}`;
+    }
 
     if (totalQuestions === 0 || !quizData.creator_username) {
         console.error('Datos inválidos para guardar resultado');
@@ -193,5 +216,5 @@ async function finishQuiz() {
     }
 }
 
-// Exportar funciones globales para compatibilidad
 window.startQuiz = startQuiz;
+window.answerQuestion = answerQuestion;
