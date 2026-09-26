@@ -1,198 +1,98 @@
 const SUPABASE_URL = 'https://dfkxlugytntvmrhjdmfg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO';
 
-function ensureSupabaseClient() {
-    // If window.supabase is already a client instance (has .from), return it
-    if (window.supabase && typeof window.supabase.from === 'function') {
-        return window.supabase;
-    }
-
-    // If global SDK 'supabase' is present, create a client
-    if (typeof supabase === 'undefined') {
-        const message = 'Supabase SDK no está cargado. Revisa que el CDN esté incluido antes de creator.js.';
-        console.error(message);
-        throw new Error(message);
-    }
-
-    // Create and assign a real client (avoid leaving the SDK object in window.supabase)
-    window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    return window.supabase;
-}
-
-let currentUserId = null;
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUsername = null;
 
+// Generar campos para 5 preguntas automáticamente
+const qContainer = document.getElementById('questions-container');
+for(let i=1; i<=5; i++) {
+    qContainer.innerHTML += `
+    <div class="question-block">
+        <h3>Pregunta ${i}</h3>
+        <input type="text" class="q-text" placeholder="Enunciado de la pregunta" required>
+        <input type="text" class="q-opt0" placeholder="Opción 1" required>
+        <input type="text" class="q-opt1" placeholder="Opción 2" required>
+        <input type="text" class="q-opt2" placeholder="Opción 3 (Opcional)">
+        <input type="text" class="q-opt3" placeholder="Opción 4 (Opcional)">
+        <select class="q-correct">
+            <option value="0">La respuesta correcta es la Opción 1</option>
+            <option value="1">La respuesta correcta es la Opción 2</option>
+            <option value="2">La respuesta correcta es la Opción 3</option>
+            <option value="3">La respuesta correcta es la Opción 4</option>
+        </select>
+    </div>`;
+}
+
 async function login() {
-    try {
-        const client = ensureSupabaseClient();
-        const user = document.getElementById('username')?.value.trim() ?? '';
-        const pass = document.getElementById('password')?.value ?? '';
-
-        if (!user || !pass || user.length > 100) {
-            alert('Completa usuario y contraseña');
-            return;
-        }
-
-        const { data, error } = await client
-            .from('creators')
-            .select('id, username')
-            .eq('username', user)
-            .eq('password', pass)
-            .limit(1);
-
-        if (error) {
-            console.error('Error al consultar creators:', error);
-            alert('Error al iniciar sesión: ' + (error.message || 'Consulta inválida'));
-            return;
-        }
-
-        if (!data || !data.length) {
-            alert('Usuario o contraseña incorrectos');
-            return;
-        }
-
-        currentUserId = data[0].id ?? null;
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    
+    const { data } = await supabase.from('creators').select('*').eq('username', user).eq('password', pass);
+    
+    if (data && data.length > 0) {
         currentUsername = data[0].username;
-
-        const authSection = document.getElementById('auth-section');
-        const dashboard = document.getElementById('dashboard');
-        const welcomeMsg = document.getElementById('welcome-msg');
-
-        if (authSection) authSection.style.display = 'none';
-        if (dashboard) dashboard.style.display = 'block';
-        if (welcomeMsg) welcomeMsg.textContent = `Hola, ${currentUsername}`;
-
-        await loadStats();
-    } catch (error) {
-        console.error('Login failed:', error);
-        alert(error?.message || 'No se pudo iniciar sesión');
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('welcome-msg').innerText = `Hola, ${currentUsername}`;
+        loadStats();
+    } else {
+        alert("Credenciales incorrectas");
     }
 }
 
-const quizForm = document.getElementById('quiz-form');
-if (quizForm) {
-    quizForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
+document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const questions = [];
+    const blocks = document.querySelectorAll('.question-block');
+    
+    blocks.forEach(block => {
+        // Filtrar opciones vacías si solo pusieron 2 o 3 opciones
+        let opciones = [
+            block.querySelector('.q-opt0').value, block.querySelector('.q-opt1').value,
+            block.querySelector('.q-opt2').value, block.querySelector('.q-opt3').value
+        ].filter(opt => opt.trim() !== "");
 
-        if (!currentUsername) {
-            alert('Debes iniciar sesión antes de crear un cuestionario');
-            return;
-        }
-
-        const questions = [];
-        let invalidBlock = false;
-
-        document.querySelectorAll('.question-block').forEach((block) => {
-            const questionText = block.querySelector('.q-text')?.value.trim() ?? '';
-            const optionOne = block.querySelector('.q-opt1')?.value.trim() ?? '';
-            const optionTwo = block.querySelector('.q-opt2')?.value.trim() ?? '';
-            const correctValue = block.querySelector('.q-correct')?.value;
-            const correctIndex = Number(correctValue);
-            const empty = !questionText && !optionOne && !optionTwo;
-
-            if (empty) return;
-            if (!questionText || !optionOne || !optionTwo ||
-                questionText.length > 500 || optionOne.length > 300 ||
-                optionTwo.length > 300 || ![0, 1].includes(correctIndex)) {
-                invalidBlock = true;
-                return;
-            }
-
-            questions.push({
-                pregunta: questionText,
-                opciones: [optionOne, optionTwo],
-                correcta: correctIndex
-            });
+        questions.push({
+            pregunta: block.querySelector('.q-text').value,
+            opciones: opciones,
+            correcta: parseInt(block.querySelector('.q-correct').value)
         });
-
-        if (invalidBlock) {
-            alert('Completa correctamente cada pregunta iniciada.');
-            return;
-        }
-
-        if (!questions.length) {
-            alert('Debes completar al menos una pregunta');
-            return;
-        }
-
-        const title = document.getElementById('quiz-title')?.value.trim() ?? '';
-        if (!title || title.length > 200) {
-            alert('Ingresa un título válido (máximo 200 caracteres)');
-            return;
-        }
-
-        try {
-            const client = ensureSupabaseClient();
-
-            const { data, error } = await client
-                .from('quizzes')
-                .insert([{ creator_username: currentUsername, title, questions, total_questions: questions.length }])
-                .select('id')
-                .single();
-
-            if (error || !data?.id) {
-                console.error('Error al guardar quiz:', error);
-                alert('Error al guardar el cuestionario');
-                return;
-            }
-
-            const quizUrl = new URL('quizz.html', window.location.href);
-            quizUrl.searchParams.set('id', data.id);
-
-            const linkContainer = document.getElementById('link-container');
-            if (linkContainer) {
-                linkContainer.replaceChildren(document.createTextNode('Enlace para compartir: '));
-                const link = document.createElement('a');
-                link.href = quizUrl.href;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                link.textContent = quizUrl.href;
-                linkContainer.appendChild(link);
-            }
-
-            quizForm.reset();
-            await loadStats();
-        } catch (error) {
-            console.error('Error creando cuestionario:', error);
-            alert(error?.message || 'No se pudo crear el cuestionario');
-        }
     });
-}
+
+    const title = document.getElementById('quiz-title').value;
+    const { data, error } = await supabase.from('quizzes').insert([{ creator_username: currentUsername, title: title, questions: questions }]).select();
+
+    if (error) return alert("Error al guardar");
+
+    const link = `${window.location.origin}${window.location.pathname.replace('index.html','')}quiz.html?id=${data[0].id}`;
+    const linkDiv = document.getElementById('link-container');
+    linkDiv.style.display = 'block';
+    linkDiv.innerHTML = `<strong>Enlace directo (cópialo):</strong><br><a href="${link}" target="_blank">${link}</a>`;
+});
 
 async function loadStats() {
-    if (!currentUsername) return;
+    const { data } = await supabase.from('results').select('*, quizzes(title)').eq('creator_username', currentUsername).order('created_at', { ascending: false });
+    const list = document.getElementById('stats-list');
+    list.innerHTML = '';
+    
+    if (!data || data.length === 0) return list.innerHTML = '<p>No hay resultados aún.</p>';
 
-    try {
-        const client = ensureSupabaseClient();
+    data.forEach((res) => {
+        let detailsHtml = res.answers_detail.map((ans, idx) => `
+            <div>P${idx+1}: <span class="${ans.isCorrect ? 'correct-text' : 'wrong-text'}">
+            ${ans.isCorrect ? 'Correcta' : `Incorrecta (Marcó: ${ans.selectedText \vert{}\vert{} 'Nada'} \vert{} Era:${ans.correctText})`}
+            </span> [${ans.timeTaken}s]</div>
+        `).join('');
 
-        const { data, error } = await client
-            .from('results')
-            .select('account, name, score, total_questions')
-            .eq('creator_username', currentUsername);
-
-        if (error) {
-            console.error('Error cargando estadísticas:', error);
-            return;
-        }
-
-        const list = document.getElementById('stats-list');
-        if (!list) return;
-        list.replaceChildren();
-
-        if (!data?.length) {
-            list.appendChild(document.createElement('li')).textContent = 'No hay resultados aún';
-            return;
-        }
-
-        data.forEach((result) => {
-            const item = document.createElement('li');
-            item.textContent = `Cuenta ${result.account ?? ''} (${result.name ?? ''}) - Nota: ${result.score ?? 0}/${result.total_questions ?? '?'}`;
-            list.appendChild(item);
-        });
-    } catch (error) {
-        console.error('Error en loadStats:', error);
-    }
+        list.innerHTML += `
+        <div class="stat-item">
+            <strong>Quiz:</strong> ${res.quizzes.title}<br>
+            <strong>Participante:</strong> ${res.name} (Cuenta: ${res.account})<br>
+            <strong>Nota:</strong> ${res.score} / 5 | <strong>Tiempo Total:</strong> ${res.total_time}s
+            <div class="stat-details">${detailsHtml}</div>
+        </div>`;
+    });
 }
-
 window.login = login;
 window.ensureSupabaseClient = ensureSupabaseClient;
