@@ -18,7 +18,7 @@ async function startQuiz() {
     pAccount = document.getElementById('p-account')?.value.trim() ?? '';
 
     if (!pName || !pAccount || pAccount.length > 3 || !/^\d+$/.test(pAccount)) {
-        alert('Datos inválidos');
+        alert('Datos inválidos. El nombre es obligatorio y la cuenta debe tener 1 a 3 dígitos.');
         return;
     }
 
@@ -56,6 +56,11 @@ async function startQuiz() {
         return;
     }
 
+    if (!quiz.questions || !Array.isArray(quiz.questions) || quiz.questions.length === 0) {
+        alert('El cuestionario no tiene preguntas.');
+        return;
+    }
+
     quizData = quiz;
     document.getElementById('registration').style.display = 'none';
     document.getElementById('quiz-container').style.display = 'block';
@@ -64,22 +69,50 @@ async function startQuiz() {
     showQuestion();
 }
 
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, (m) => map[m]);
+}
+
 function showQuestion() {
-    if (!quizData || currentQuestionIndex >= quizData.questions.length) {
+    if (!quizData || !Array.isArray(quizData.questions) || currentQuestionIndex >= quizData.questions.length) {
         finishQuiz();
         return;
     }
 
     const q = quizData.questions[currentQuestionIndex];
-    document.getElementById('question-text').innerText = q.pregunta;
+    
+    if (!q || !q.pregunta || !Array.isArray(q.opciones)) {
+        console.error('Pregunta inválida:', q);
+        finishQuiz();
+        return;
+    }
 
-    let optionsHtml = '';
+    document.getElementById('question-text').innerText = q.pregunta;
+    document.getElementById('question-text').textContent = q.pregunta; // Asegurar seguridad
+
+    const optionsContainer = document.getElementById('options');
+    optionsContainer.innerHTML = '';
+
     q.opciones.forEach((opt, index) => {
-        optionsHtml += `<button type="button" onclick="answerQuestion(${index})">${opt}</button>`;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = opt; // Usar textContent en lugar de innerHTML
+        button.onclick = () => answerQuestion(index);
+        button.style.margin = '0.5rem 0';
+        button.style.padding = '0.75rem';
+        button.style.width = '100%';
+        optionsContainer.appendChild(button);
     });
 
-    document.getElementById('options').innerHTML = optionsHtml;
     document.getElementById('feedback').innerText = '';
+    document.getElementById('feedback').textContent = '';
 
     let timeLeft = 45;
     document.getElementById('timer').innerText = `${timeLeft}s`;
@@ -112,10 +145,12 @@ window.answerQuestion = (selectedIndex) => {
 
     if (selectedIndex === correctIndex) {
         feedbackEl.innerText = '¡Correcto!';
+        feedbackEl.textContent = '¡Correcto!';
         feedbackEl.style.color = 'green';
         score += 1;
     } else {
         feedbackEl.innerText = 'Incorrecto o Tiempo Agotado';
+        feedbackEl.textContent = 'Incorrecto o Tiempo Agotado';
         feedbackEl.style.color = 'red';
     }
 
@@ -131,13 +166,20 @@ async function finishQuiz() {
 
     const totalQuestions = Array.isArray(quizData.questions) ? quizData.questions.length : 0;
     document.getElementById('final-score').innerText = `Tu nota es: ${score} / ${totalQuestions}`;
+    document.getElementById('final-score').textContent = `Tu nota es: ${score} / ${totalQuestions}`;
+
+    if (totalQuestions === 0 || !quizData.creator_username) {
+        console.error('Datos inválidos para guardar resultado');
+        return;
+    }
 
     const { error } = await supabase.from('results').insert([{
         quiz_id: quizId,
         creator_username: quizData.creator_username,
         name: pName,
         account: pAccount,
-        score: score
+        score: score,
+        total_questions: totalQuestions
     }]);
 
     if (error) {

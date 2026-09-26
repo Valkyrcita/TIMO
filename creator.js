@@ -8,7 +8,7 @@ let currentUsername = null;
 
 async function login() {
     const user = document.getElementById('username')?.value.trim();
-    const pass = document.getElementById('password')?.value;
+    const pass = document.getElementById('password')?.value.trim();
 
     if (!user || !pass) {
         alert('Completa usuario y contraseña');
@@ -80,7 +80,12 @@ if (quizForm) {
 
         const { data, error } = await supabase
             .from('quizzes')
-            .insert([{ creator_username: currentUsername, title, questions }])
+            .insert([{ 
+                creator_username: currentUsername, 
+                title, 
+                questions,
+                total_questions: questions.length
+            }])
             .select();
 
         if (error) {
@@ -89,12 +94,23 @@ if (quizForm) {
             return;
         }
 
-        const link = `${window.location.origin}${window.location.pathname.replace(/index\.html$/i, '')}quiz.html?id=${data[0].id}`;
+        if (!data || data.length === 0) {
+            alert('Error al obtener el ID del cuestionario');
+            return;
+        }
+
+        const quizUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname.replace(/index\.html$/i, '')}quizz.html?id=${data[0].id}`;
         const linkContainer = document.getElementById('link-container');
 
         if (linkContainer) {
-            linkContainer.innerHTML = `Enlace para compartir: <a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>`;
+            linkContainer.innerHTML = `Enlace para compartir: <a href="${quizUrl}" target="_blank" rel="noopener noreferrer">${quizUrl}</a>`;
         }
+
+        // Limpiar formulario
+        quizForm.reset();
+        
+        // Recargar estadísticas
+        loadStats();
     });
 }
 
@@ -115,7 +131,14 @@ async function loadStats() {
     if (!list) return;
 
     list.innerHTML = '';
+    
+    if (!data || data.length === 0) {
+        list.innerHTML = '<li>No hay resultados aún</li>';
+        return;
+    }
+    
     data.forEach((result) => {
-        list.innerHTML += `<li>Cuenta ${result.account} (${result.name}) - Nota: ${result.score}/5</li>`;
+        const totalQuestions = result.total_questions || '?';
+        list.innerHTML += `<li>Cuenta ${result.account} (${result.name}) - Nota: ${result.score}/${totalQuestions}</li>`;
     });
 }
