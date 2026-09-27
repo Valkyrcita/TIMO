@@ -1,7 +1,4 @@
-const SUPABASE_URL = 'https://dfkxlugytntvmrhjdmfg.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO';
-
-const supabase = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+let supabase = null;
 let currentUsername = null;
 
 function generateQuestionBlocks() {
@@ -29,51 +26,105 @@ function generateQuestionBlocks() {
     }
 }
 
-generateQuestionBlocks();
+async function initSupabase() {
+    const SUPABASE_URL = 'https://dfkxlugytntvmrhjdmfg.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO';
+
+    try {
+        if (!window.supabase || !window.supabase.createClient) {
+            console.error('❌ Supabase SDK no está cargado en window.supabase');
+            console.log('window.supabase:', window.supabase);
+            return false;
+        }
+
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log('✅ Supabase client creado correctamente');
+        return true;
+    } catch (error) {
+        console.error('❌ Error al inicializar Supabase:', error);
+        return false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('📄 DOMContentLoaded - iniciando aplicación');
+    generateQuestionBlocks();
+    
+    const ready = await initSupabase();
+    if (!ready) {
+        const authSection = document.getElementById('auth-section');
+        if (authSection) {
+            authSection.innerHTML = '<p style="color:red; font-size:16px;">❌ Error de conexión con Supabase.\n<br>Recarga la página o abre la consola (F12) para ver detalles.</p>';
+        }
+    } else {
+        console.log('✅ Aplicación lista');
+    }
+});
 
 async function login() {
+    console.log('🔐 Iniciando login...');
+    
     if (!supabase) {
-        alert('No hay conexión con Supabase disponible.');
+        console.error('❌ Supabase no está inicializado');
+        alert('Supabase no está inicializado. Recarga la página.');
         return;
     }
 
     const user = document.getElementById('username')?.value.trim() ?? '';
     const pass = document.getElementById('password')?.value.trim() ?? '';
 
+    console.log('Usuario ingresado:', user);
+
     if (!user || !pass) {
-        alert('Completa usuario y contraseña');
+        alert('Completa usuario y contraseña.');
         return;
     }
 
-    const { data, error } = await supabase
-        .from('creators')
-        .select('*')
-        .eq('username', user)
-        .eq('password', pass);
+    try {
+        console.log('📤 Enviando consulta a Supabase...');
+        console.log('Buscando:', { username: user, password: pass });
+        
+        const { data, error } = await supabase
+            .from('creators')
+            .select('*')
+            .eq('username', user)
+            .eq('password', pass);
 
-    if (error) {
-        console.error(error);
-        alert('Error al iniciar sesión: ' + error.message);
-        return;
+        console.log('📥 Respuesta de Supabase:');
+        console.log('  data:', data);
+        console.log('  error:', error);
+
+        if (error) {
+            console.error('❌ Error Supabase:', error);
+            alert(`Error al consultar BD: ${error.message}\n\nRevisa:\n1. La tabla 'creators' existe\n2. RLS está deshabilitado o permite SELECT\n3. El usuario/contraseña existen`);
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            console.warn('⚠️ No se encontraron usuarios con esas credenciales');
+            alert('Credenciales incorrectas.\n\nDatos de prueba:\nUsuario: admin\nContraseña: admin123');
+            return;
+        }
+
+        currentUsername = data[0].username;
+        console.log('✅ Login exitoso. Usuario:', currentUsername);
+        
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('welcome-msg').innerText = `Hola, ${currentUsername}`;
+        await loadStats();
+    } catch (error) {
+        console.error('❌ Error inesperado en login:', error);
+        alert('Error inesperado: ' + (error?.message || 'desconocido'));
     }
-
-    if (!data || data.length === 0) {
-        alert('Credenciales incorrectas');
-        return;
-    }
-
-    currentUsername = data[0].username;
-    document.getElementById('auth-section').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('welcome-msg').innerText = `Hola, ${currentUsername}`;
-    await loadStats();
 }
 
 document.getElementById('quiz-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
+    console.log('📝 Creando nuevo quiz...');
 
     if (!supabase) {
-        alert('No hay conexión con Supabase disponible.');
+        alert('Supabase no está disponible.');
         return;
     }
 
@@ -125,73 +176,91 @@ document.getElementById('quiz-form')?.addEventListener('submit', async (event) =
         return;
     }
 
-    const { data, error } = await supabase
-        .from('quizzes')
-        .insert([{ creator_username: currentUsername, title, questions }])
-        .select();
+    try {
+        console.log('📤 Insertando quiz en Supabase...');
+        const { data, error } = await supabase
+            .from('quizzes')
+            .insert([{ creator_username: currentUsername, title, questions }])
+            .select();
 
-    if (error || !data || data.length === 0) {
-        console.error(error);
-        alert('Error al guardar el cuestionario.');
-        return;
+        console.log('📥 Respuesta:', { data, error });
+
+        if (error || !data || data.length === 0) {
+            console.error('Error guardando quiz:', error);
+            alert(`No se pudo guardar el cuestionario.\nError: ${error?.message || 'desconocido'}`);
+            return;
+        }
+
+        console.log('✅ Quiz creado con ID:', data[0].id);
+        const quizLink = `${window.location.origin}${window.location.pathname.replace(/index\.html$/, '')}quiz.html?id=${data[0].id}`;
+        const linkDiv = document.getElementById('link-container');
+        if (linkDiv) {
+            linkDiv.style.display = 'block';
+            linkDiv.innerHTML = `<strong>✅ Enlace directo (cópialo):</strong><br><a href="${quizLink}" target="_blank" rel="noopener noreferrer">${quizLink}</a>`;
+        }
+
+        document.getElementById('quiz-form')?.reset();
+        generateQuestionBlocks();
+        await loadStats();
+        alert('✅ Cuestionario creado exitosamente');
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al crear cuestionario: ' + (error?.message || 'desconocido'));
     }
-
-    const quizLink = `${window.location.origin}${window.location.pathname.replace(/index\.html$/, '')}quiz.html?id=${data[0].id}`;
-    const linkDiv = document.getElementById('link-container');
-    if (linkDiv) {
-        linkDiv.style.display = 'block';
-        linkDiv.innerHTML = `<strong>Enlace directo (cópialo):</strong><br><a href="${quizLink}" target="_blank" rel="noopener noreferrer">${quizLink}</a>`;
-    }
-
-    document.getElementById('quiz-form')?.reset();
-    generateQuestionBlocks();
-    await loadStats();
 });
 
 async function loadStats() {
+    console.log('📊 Cargando estadísticas...');
     if (!supabase || !currentUsername) return;
 
-    const { data, error } = await supabase
-        .from('results')
-        .select('*, quizzes(title)')
-        .eq('creator_username', currentUsername)
-        .order('created_at', { ascending: false });
+    try {
+        const { data, error } = await supabase
+            .from('results')
+            .select('*, quizzes(title)')
+            .eq('creator_username', currentUsername)
+            .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error(error);
-        return;
+        if (error) {
+            console.error('Error cargando estadísticas:', error);
+            return;
+        }
+
+        const list = document.getElementById('stats-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            list.innerHTML = '<p>No hay resultados aún.</p>';
+            return;
+        }
+
+        console.log(`✅ ${data.length} resultados cargados`);
+
+        data.forEach((res) => {
+            const details = Array.isArray(res.answers_detail) ? res.answers_detail : [];
+            const detailsHtml = details.map((ans, idx) => {
+                const selectedText = ans && ans.selectedText ? ans.selectedText : 'Nada';
+                const correctText = ans && ans.correctText ? ans.correctText : 'N/A';
+                const statusClass = ans && ans.isCorrect ? 'correct-text' : 'wrong-text';
+                const statusText = ans && ans.isCorrect ? 'Correcta' : `Incorrecta (Marcó: ${selectedText} | Era: ${correctText})`;
+                return `<div>P${idx + 1}: <span class="${statusClass}">${statusText}</span> [${ans?.timeTaken ?? 0}s]</div>`;
+            }).join('');
+
+            const quizTitle = res.quizzes && res.quizzes.title ? res.quizzes.title : 'Quiz';
+
+            list.innerHTML += `
+                <div class="stat-item">
+                    <strong>Quiz:</strong> ${quizTitle}<br>
+                    <strong>Participante:</strong> ${res.name ?? ''} (Cuenta: ${res.account ?? ''})<br>
+                    <strong>Nota:</strong> ${res.score ?? 0} / ${res.total_questions ?? 5} | <strong>Tiempo Total:</strong> ${res.total_time ?? 0}s
+                    <div class="stat-details">${detailsHtml || '<span>No hay detalle disponible.</span>'}</div>
+                </div>
+            `;
+        });
+    } catch (error) {
+        console.error('Error en loadStats:', error);
     }
-
-    const list = document.getElementById('stats-list');
-    if (!list) return;
-    list.innerHTML = '';
-
-    if (!data || data.length === 0) {
-        list.innerHTML = '<p>No hay resultados aún.</p>';
-        return;
-    }
-
-    data.forEach((res) => {
-        const details = Array.isArray(res.answers_detail) ? res.answers_detail : [];
-        const detailsHtml = details.map((ans, idx) => {
-            const selectedText = ans && ans.selectedText ? ans.selectedText : 'Nada';
-            const correctText = ans && ans.correctText ? ans.correctText : 'N/A';
-            const statusClass = ans && ans.isCorrect ? 'correct-text' : 'wrong-text';
-            const statusText = ans && ans.isCorrect ? 'Correcta' : `Incorrecta (Marcó: ${selectedText} | Era: ${correctText})`;
-            return `<div>P${idx + 1}: <span class="${statusClass}">${statusText}</span> [${ans?.timeTaken ?? 0}s]</div>`;
-        }).join('');
-
-        const quizTitle = res.quizzes && res.quizzes.title ? res.quizzes.title : 'Quiz';
-
-        list.innerHTML += `
-            <div class="stat-item">
-                <strong>Quiz:</strong> ${quizTitle}<br>
-                <strong>Participante:</strong> ${res.name ?? ''} (Cuenta: ${res.account ?? ''})<br>
-                <strong>Nota:</strong> ${res.score ?? 0} / ${res.total_questions ?? 5} | <strong>Tiempo Total:</strong> ${res.total_time ?? 0}s
-                <div class="stat-details">${detailsHtml || '<span>No hay detalle disponible.</span>'}</div>
-            </div>
-        `;
-    });
 }
 
 window.login = login;
+window.loadStats = loadStats;

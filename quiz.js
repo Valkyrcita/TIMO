@@ -1,7 +1,4 @@
-const SUPABASE_URL = 'https://dfkxlugytntvmrhjdmfg.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO';
-
-const supabase = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+let supabase = null;
 const urlParams = new URLSearchParams(window.location.search);
 const quizId = urlParams.get('id');
 
@@ -14,74 +11,130 @@ let timeLeft = 45;
 let participantInfo = {};
 let answersDetail = [];
 
+async function initSupabase() {
+    const SUPABASE_URL = 'https://dfkxlugytntvmrhjdmfg.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_JsRpqD8vOrG84KtPbR97Ng_Aq9ZpZlO';
+
+    try {
+        if (!window.supabase || !window.supabase.createClient) {
+            console.error('❌ Supabase SDK no está cargado');
+            return false;
+        }
+
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log('✅ Supabase inicializado');
+        return true;
+    } catch (error) {
+        console.error('❌ Error inicializando Supabase:', error);
+        return false;
+    }
+}
+
 async function init() {
-    if (!supabase) {
-        alert('No hay conexión con Supabase disponible.');
+    console.log('🚀 Inicializando quiz.js...');
+    console.log('Quiz ID:', quizId);
+    
+    const ready = await initSupabase();
+    if (!ready) {
+        const titleHeader = document.getElementById('quiz-title-header');
+        if (titleHeader) titleHeader.innerText = 'Error: Supabase no disponible';
         return;
     }
 
     if (!quizId) {
-        document.getElementById('quiz-title-header').innerText = 'URL Inválida';
+        const titleHeader = document.getElementById('quiz-title-header');
+        if (titleHeader) titleHeader.innerText = 'URL Inválida - No hay ID de quiz';
         return;
     }
 
-    const { data, error } = await supabase
-        .from('quizzes')
-        .select('*')
-        .eq('id', quizId)
-        .single();
+    try {
+        console.log('📤 Buscando quiz con ID:', quizId);
+        const { data, error } = await supabase
+            .from('quizzes')
+            .select('*')
+            .eq('id', quizId)
+            .single();
 
-    if (error || !data) {
-        console.error(error);
-        document.getElementById('quiz-title-header').innerText = 'Quiz no encontrado';
-        return;
+        console.log('📥 Respuesta Supabase:', { data, error });
+
+        if (error) {
+            console.error('❌ Error Supabase:', error);
+            const titleHeader = document.getElementById('quiz-title-header');
+            if (titleHeader) titleHeader.innerText = `Error: ${error.message}`;
+            return;
+        }
+
+        if (!data) {
+            const titleHeader = document.getElementById('quiz-title-header');
+            if (titleHeader) titleHeader.innerText = 'Quiz no encontrado';
+            return;
+        }
+
+        quizData = data;
+        console.log('✅ Quiz cargado:', quizData.title);
+        const titleHeader = document.getElementById('quiz-title-header');
+        if (titleHeader) titleHeader.innerText = quizData.title ?? 'Cuestionario';
+    } catch (error) {
+        console.error('❌ Error inesperado:', error);
+        const titleHeader = document.getElementById('quiz-title-header');
+        if (titleHeader) titleHeader.innerText = `Error: ${error.message}`;
     }
-
-    quizData = data;
-    document.getElementById('quiz-title-header').innerText = quizData.title ?? 'Cuestionario';
 }
 
 init();
 
 async function startQuiz() {
+    console.log('🎯 Iniciando quiz...');
+    
     if (!supabase) {
-        alert('No hay conexión con Supabase disponible.');
+        alert('Supabase no está disponible.');
         return;
     }
 
     participantInfo.name = document.getElementById('p-name')?.value.trim() ?? '';
     participantInfo.account = document.getElementById('p-account')?.value.trim() ?? '';
 
+    console.log('Datos del participante:', participantInfo);
+
     if (!participantInfo.name || !participantInfo.account) {
         alert('Llena tus datos para continuar.');
         return;
     }
 
-    const { data, error } = await supabase
-        .from('results')
-        .select('id')
-        .eq('quiz_id', quizId)
-        .eq('account', participantInfo.account);
+    try {
+        console.log('📤 Verificando si la cuenta ya realizó el quiz...');
+        const { data, error } = await supabase
+            .from('results')
+            .select('id')
+            .eq('quiz_id', quizId)
+            .eq('account', participantInfo.account);
 
-    if (error) {
-        console.error(error);
-        alert('No se pudo validar la participación.');
-        return;
+        console.log('📥 Respuesta:', { data, error });
+
+        if (error) {
+            console.error('Error validando:', error);
+            alert('No se pudo validar la participación: ' + error.message);
+            return;
+        }
+
+        if (data && data.length > 0) {
+            alert('Esta cuenta ya realizó este quiz.');
+            return;
+        }
+
+        if (!quizData || !Array.isArray(quizData.questions)) {
+            alert('El cuestionario no está disponible.');
+            return;
+        }
+
+        console.log('✅ Iniciando cuestionario');
+        document.getElementById('registration').style.display = 'none';
+        document.getElementById('quiz-container').style.display = 'block';
+        showQuestion();
+    } catch (error) {
+        console.error('Error en startQuiz:', error);
+        alert('Error al iniciar el quiz: ' + (error?.message || 'desconocido'));
     }
-
-    if (data && data.length > 0) {
-        alert('Esta cuenta ya realizó este quiz.');
-        return;
-    }
-
-    if (!quizData || !Array.isArray(quizData.questions)) {
-        alert('El cuestionario no está disponible.');
-        return;
-    }
-
-    document.getElementById('registration').style.display = 'none';
-    document.getElementById('quiz-container').style.display = 'block';
-    showQuestion();
 }
 
 function showQuestion() {
@@ -96,11 +149,19 @@ function showQuestion() {
     }
 
     const q = quizData.questions[currentQIndex];
-    document.getElementById('question-text').innerText = `${currentQIndex + 1}. ${q.pregunta}`;
-    document.getElementById('feedback').innerText = '';
-    document.getElementById('feedback').className = '';
+    console.log(`Pregunta ${currentQIndex + 1}:`, q.pregunta);
+    
+    const questionText = document.getElementById('question-text');
+    if (questionText) questionText.innerText = `${currentQIndex + 1}. ${q.pregunta}`;
+    
+    const feedback = document.getElementById('feedback');
+    if (feedback) {
+        feedback.innerText = '';
+        feedback.className = '';
+    }
 
     const optsContainer = document.getElementById('options-container');
+    if (!optsContainer) return;
     optsContainer.innerHTML = '';
 
     q.opciones.forEach((opt, index) => {
@@ -108,12 +169,13 @@ function showQuestion() {
     });
 
     timeLeft = 45;
-    document.getElementById('timer').innerText = timeLeft;
+    const timer = document.getElementById('timer');
+    if (timer) timer.innerText = String(timeLeft);
     clearInterval(timerInterval);
 
     timerInterval = setInterval(() => {
         timeLeft -= 1;
-        document.getElementById('timer').innerText = timeLeft;
+        if (timer) timer.innerText = String(timeLeft);
         if (timeLeft <= 0) checkAnswer(-1);
     }, 1000);
 }
@@ -130,22 +192,20 @@ function checkAnswer(selectedIndex) {
     totalTime += timeTaken;
 
     const buttons = document.querySelectorAll('.btn-option');
-    buttons.forEach((button) => {
-        button.disabled = true;
-    });
+    buttons.forEach((button) => button.disabled = true);
 
     const isCorrect = selectedIndex === q.correcta;
     const feedbackDiv = document.getElementById('feedback');
 
     if (isCorrect) {
         score += 1;
-        feedbackDiv.innerText = '¡Respuesta Correcta! ✅';
-        feedbackDiv.style.color = '#22c55e';
+        if (feedbackDiv) feedbackDiv.innerText = '¡Respuesta Correcta! ✅';
+        if (feedbackDiv) feedbackDiv.style.color = '#22c55e';
         const btn = document.getElementById(`btn-${selectedIndex}`);
         if (btn) btn.classList.add('correct-ans');
     } else {
-        feedbackDiv.innerText = `Incorrecto ❌. La correcta era: ${q.opciones[q.correcta]}`;
-        feedbackDiv.style.color = '#dc3545';
+        if (feedbackDiv) feedbackDiv.innerText = `Incorrecto ❌. La correcta era: ${q.opciones[q.correcta]}`;
+        if (feedbackDiv) feedbackDiv.style.color = '#dc3545';
         if (selectedIndex !== -1) {
             const wrongBtn = document.getElementById(`btn-${selectedIndex}`);
             if (wrongBtn) wrongBtn.classList.add('wrong-ans');
@@ -167,14 +227,22 @@ function checkAnswer(selectedIndex) {
 }
 
 async function finishQuiz() {
+    console.log('🏁 Quiz finalizado');
+    console.log('Puntuación:', score);
+    console.log('Tiempo total:', totalTime);
+    
     if (!quizData || !supabase) return;
 
-    document.getElementById('quiz-container').style.display = 'none';
-    document.getElementById('result-container').style.display = 'block';
+    const quizContainer = document.getElementById('quiz-container');
+    const resultContainer = document.getElementById('result-container');
+    if (quizContainer) quizContainer.style.display = 'none';
+    if (resultContainer) resultContainer.style.display = 'block';
 
     const totalQuestions = Array.isArray(quizData.questions) ? quizData.questions.length : 0;
-    document.getElementById('final-score').innerText = `${score} / ${totalQuestions}`;
-    document.getElementById('final-time').innerText = `Tiempo total: ${totalTime} segundos`;
+    const finalScore = document.getElementById('final-score');
+    const finalTime = document.getElementById('final-time');
+    if (finalScore) finalScore.innerText = `${score} / ${totalQuestions}`;
+    if (finalTime) finalTime.innerText = `Tiempo total: ${totalTime} segundos`;
 
     const payload = {
         quiz_id: quizId,
@@ -187,10 +255,21 @@ async function finishQuiz() {
         total_questions: totalQuestions
     };
 
-    const { error } = await supabase.from('results').insert([payload]);
-    if (error) {
-        console.error(error);
-        alert('No se pudo guardar tu resultado.');
+    console.log('📤 Guardando resultado:', payload);
+
+    try {
+        const { error } = await supabase.from('results').insert([payload]);
+        
+        if (error) {
+            console.error('❌ Error guardando resultado:', error);
+            alert('El quiz terminó pero no se guardó el resultado.\nError: ' + error.message);
+            return;
+        }
+        
+        console.log('✅ Resultado guardado correctamente');
+    } catch (error) {
+        console.error('❌ Error en finishQuiz:', error);
+        alert('No se pudo guardar tu resultado: ' + (error?.message || 'desconocido'));
     }
 }
 
